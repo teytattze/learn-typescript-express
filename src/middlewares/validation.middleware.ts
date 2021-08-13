@@ -1,8 +1,8 @@
 import { plainToClass } from 'class-transformer';
 import { validate, ValidationError } from 'class-validator';
 import { NextFunction, Request, RequestHandler, Response } from 'express';
-import { HttpException } from 'src/exceptions/http.exception';
-import { HttpStatus } from 'src/shared/enums/http-status.enum';
+import { HttpException } from '../exceptions/http.exception';
+import { HttpStatus } from '../shared/enums/http-status.enum';
 
 export const ValidationMiddleware = (type: any, skipMissingProperties = false): RequestHandler => {
 	return async (req: Request, res: Response, next: NextFunction) => {

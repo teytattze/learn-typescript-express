@@ -1,7 +1,7 @@
 import * as bcrypt from 'bcryptjs';
 import * as express from 'express';
-import { BadRequestException } from 'src/exceptions/bad-request.exception';
-import { UnauthorizedException } from 'src/exceptions/unauthorized.exception';
+import { BadRequestException } from '../../exceptions/bad-request.exception';
+import { UnauthorizedException } from '../../exceptions/unauthorized.exception';
 import { ValidationMiddleware } from '../../middlewares/validation.middleware';
 import { BaseController } from '../../shared/base/controller.base';
 import { CreateUserDto } from '../users/dto';

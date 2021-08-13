@@ -1,4 +1,4 @@
-import { HttpStatus } from 'src/shared/enums/http-status.enum';
+import { HttpStatus } from '../shared/enums/http-status.enum';
 import { HttpException } from './http.exception';
 
 export class UnauthorizedException extends HttpException {
