@@ -2,19 +2,19 @@ import { IsString, IsEmail, IsOptional, ValidateNested } from 'class-validator';
 import { CreateAddressDto } from './create-address.dto';
 
 export class CreateUserDto {
-	@IsString()
-	firstName: string;
+  @IsString()
+  firstName: string;
 
-	@IsString()
-	lastName: string;
+  @IsString()
+  lastName: string;
 
-	@IsEmail()
-	email: string;
+  @IsEmail()
+  email: string;
 
-	@IsString()
-	password: string;
+  @IsString()
+  password: string;
 
-	@IsOptional()
-	@ValidateNested()
-	address: CreateAddressDto;
+  @IsOptional()
+  @ValidateNested()
+  address: CreateAddressDto;
 }

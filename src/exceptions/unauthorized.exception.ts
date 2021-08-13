@@ -2,7 +2,7 @@ import { HttpStatus } from '../shared/enums/http-status.enum';
 import { HttpException } from './http.exception';
 
 export class UnauthorizedException extends HttpException {
-	constructor(message: string = 'Unauthorized') {
-		super(HttpStatus.UNAUTHORIZED, message);
-	}
+  constructor(message: string = 'Unauthorized') {
+    super(HttpStatus.UNAUTHORIZED, message);
+  }
 }
