@@ -1,15 +1,15 @@
 {
-	"compilerOptions": {
-		"experimentalDecorators": true,
-		"moduleResolution": "Node",
-		"sourceMap": true,
-		"target": "es2017",
-		"outDir": "./dist",
-		"baseUrl": ".",
-		"paths": {
-			"src/*": ["./src/*"]
-		}
-	},
-	"include": ["src/**/*.ts"],
-	"exclude": ["node_modules"]
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "moduleResolution": "Node",
+    "sourceMap": true,
+    "target": "es2017",
+    "outDir": "./dist",
+    "baseUrl": ".",
+    "paths": {
+      "src": ["./src/*"]
+    }
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules"]
 }
