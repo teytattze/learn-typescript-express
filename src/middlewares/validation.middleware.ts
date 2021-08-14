@@ -1,14 +1,14 @@
 import { plainToClass } from 'class-transformer';
 import { validate, ValidationError } from 'class-validator';
 import { NextFunction, Request, RequestHandler, Response } from 'express';
-import { HttpException } from '../exceptions/http.exception';
+import { HttpException } from '../exceptions';
 import { HttpStatus } from '../shared/enums/http-status.enum';
 
-export const ValidationMiddleware = (
+export const validationMiddleware = (
   type: any,
   skipMissingProperties = false,
 ): RequestHandler => {
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, _: Response, next: NextFunction) => {
     const errors: ValidationError[] = await validate(
       plainToClass(type, req.body),
       {
@@ -17,10 +17,10 @@ export const ValidationMiddleware = (
     );
     if (errors.length > 0) {
       const message = errors
-        .map((error: ValidationError) => Object.values(error.constraints))
+        .map((error: ValidationError) => Object.values(error.constraints!))
         .join(', ');
-      next(new HttpException(HttpStatus.BAD_REQUEST, message));
+      return next(new HttpException(HttpStatus.BAD_REQUEST, message));
     }
-    next();
+    return next();
   };
 };

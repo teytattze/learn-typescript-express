@@ -1,72 +1,82 @@
 import * as bcrypt from 'bcryptjs';
 import * as express from 'express';
-import { BadRequestException } from 'src/exceptions/bad-request.exception';
-import { UnauthorizedException } from '../../exceptions/unauthorized.exception';
-import { ValidationMiddleware } from '../../middlewares/validation.middleware';
-import { BaseController } from '../../shared/base/controller.base';
+import * as jwt from 'jsonwebtoken';
+import * as _ from 'lodash';
+import { IUser } from '../../modules/users/users.interface';
+import { BadRequestException, UnauthorizedException } from '../../exceptions';
 import { CreateUserDto } from '../users/dto';
 import { userModel } from '../users/users.model';
 import { SALT } from './authentication.const';
+import { IJwtPayload } from './authentication.interface';
 import { LoginDto } from './dto';
 
-export class AuthenticationController extends BaseController {
-  private user = userModel;
-
-  constructor() {
-    super('/auth');
-    this.initializeRoutes();
-  }
-
-  private initializeRoutes() {
-    this.router.post(
-      `${this.path}/register`,
-      ValidationMiddleware(CreateUserDto),
-      this.registration,
-    );
-    this.router.post(
-      `${this.path}/login`,
-      ValidationMiddleware(LoginDto),
-      this.login,
-    );
-  }
-
-  private async registration(
+export class AuthenticationController {
+  registration = async (
     req: express.Request,
     res: express.Response,
     next: express.NextFunction,
-  ) {
+  ) => {
     const userData: CreateUserDto = req.body;
-    const isSameEmail = await this.user.findOne({ email: userData.email });
+    const isSameEmail = await userModel.findOne({
+      email: userData.email,
+    });
     if (isSameEmail) {
-      next(new BadRequestException('This email has already taken'));
+      return next(new BadRequestException());
     }
     const hashedPassword = await bcrypt.hash(userData.password, SALT);
-    const user = await this.user.create({
+    const user = await userModel.create({
       ...userData,
       password: hashedPassword,
     });
-    delete user.password;
+    const tokenData = this.createToken(user);
+    res.cookie('authorization', tokenData.token, {
+      httpOnly: true,
+      path: '/',
+      maxAge: tokenData.expiresIn * 1000,
+    });
     res.send(user);
-  }
+  };
 
-  private async login(
+  login = async (
     req: express.Request,
     res: express.Response,
     next: express.NextFunction,
-  ) {
+  ) => {
     const loginData: LoginDto = req.body;
-    const user = await this.user.findOne({ email: loginData.email });
+    const user = await userModel.findOne({ email: loginData.email });
     if (!user) {
-      next(new UnauthorizedException());
+      return next(new UnauthorizedException());
     }
     const isPasswordMatched = await bcrypt.compare(
       loginData.password,
-      user.password,
+      user!.password,
     );
     if (!isPasswordMatched) {
-      next(new UnauthorizedException());
+      return next(new UnauthorizedException());
     }
-    delete user.password;
-    res.send(user);
+    const tokenData = this.createToken(user);
+    res.cookie('authorization', tokenData.token, {
+      httpOnly: true,
+      path: '/',
+      maxAge: tokenData.expiresIn * 1000,
+    });
+    res.send(_.omit(user, ['password']));
+  };
+
+  async logout(_: express.Request, res: express.Response) {
+    res.cookie('authorization', '');
+    res.send({ message: 'Logout successfully' });
   }
+
+  private createToken = (user: IUser) => {
+    const expiresIn = 15 * 60;
+    const secret = process.env.JWT_SECRET as string;
+    const payload: IJwtPayload = {
+      _id: user._id.toString(),
+    };
+    return {
+      token: jwt.sign(payload, secret, { expiresIn }),
+      expiresIn,
+    };
+  };
 }

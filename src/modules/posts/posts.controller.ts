@@ -1,86 +1,65 @@
 import * as express from 'express';
-import { BaseController } from '../../shared/base/controller.base';
-import { NotFoundException } from '../../exceptions/not-found.exception';
-import { ValidationMiddleware } from '../../middlewares/validation.middleware';
+import { NotFoundException } from '../../exceptions';
+import { IRequestWithUser } from '../../shared/interfaces/request';
 import { IPost } from './posts.interface';
 import { postModel } from './posts.model';
-import { CreatePostDto, UpdatePostDto } from './dto';
 
-export class PostsController extends BaseController {
-  private readonly post = postModel;
-
-  constructor() {
-    super('/posts');
-    this.initializeRoutes();
-  }
-
-  private initializeRoutes() {
-    this.router.get(this.path, this.getAllPost);
-    this.router.post(
-      this.path,
-      ValidationMiddleware(CreatePostDto),
-      this.createSinglePost,
-    );
-    this.router.get(`${this.path}/:id`, this.getPostById);
-    this.router.patch(
-      `${this.path}/:id`,
-      ValidationMiddleware(UpdatePostDto, true),
-      this.updateSinglePost,
-    );
-    this.router.delete(`${this.path}/:id`, this.deleteSinglePost);
-  }
-
-  async getAllPost(_: express.Request, res: express.Response) {
-    const posts = await this.post.find();
+export class PostsController {
+  getAllPost = async (_: express.Request, res: express.Response) => {
+    const posts = await postModel.find();
     res.send(posts);
-  }
+  };
 
-  async createSinglePost(req: express.Request, res: express.Response) {
+  createSinglePost = async (req: IRequestWithUser, res: express.Response) => {
     const postData: IPost = req.body;
-    const createdPost = new this.post(postData);
+    const createdPost = new postModel({
+      ...postData,
+      author: req.user?._id,
+    });
     const savedPost = await createdPost.save();
+    await savedPost.populate('author', '-password').execPopulate();
     res.send(savedPost);
-  }
+  };
 
-  async getPostById(
+  getPostById = async (
     req: express.Request,
     res: express.Response,
     next: express.NextFunction,
-  ) {
+  ) => {
     const { id } = req.params;
-    const post = await this.post.findById(id);
+    const post = await postModel.findById(id);
     if (post) {
       res.send(post);
     }
-    next(new NotFoundException('Post not found'));
-  }
+    return next(new NotFoundException('Post not found'));
+  };
 
-  async updateSinglePost(
+  updateSinglePost = async (
     req: express.Request,
     res: express.Response,
     next: express.NextFunction,
-  ) {
+  ) => {
     const { id } = req.params;
     const postData = req.body;
-    const updatedPost = await this.post.findByIdAndUpdate(id, postData, {
+    const updatedPost = await postModel.findByIdAndUpdate(id, postData, {
       new: true,
     });
     if (updatedPost) {
       res.send(updatedPost);
     }
-    next(new NotFoundException('Post not found'));
-  }
+    return next(new NotFoundException('Post not found'));
+  };
 
-  async deleteSinglePost(
+  deleteSinglePost = async (
     req: express.Request,
     res: express.Response,
     next: express.NextFunction,
-  ) {
+  ) => {
     const { id } = req.params;
-    const isSuccess = await this.post.findByIdAndDelete(id);
+    const isSuccess = await postModel.findByIdAndDelete(id);
     if (isSuccess) {
       res.send({ message: 'The post have been deleted successfully' });
     }
-    next(new NotFoundException('Post not found'));
-  }
+    return next(new NotFoundException('Post not found'));
+  };
 }

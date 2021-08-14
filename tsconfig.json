@@ -1,15 +1,22 @@
 {
   "compilerOptions": {
+    "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "moduleResolution": "Node",
     "sourceMap": true,
+    "strict": true,
+    "strictPropertyInitialization": false,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "noUnusedLocals": true,
     "target": "es2017",
     "outDir": "./dist",
     "baseUrl": ".",
     "paths": {
-      "src": ["./src/*"]
+      "src/*": ["./src/*"]
     }
   },
+  "files": ["src/types.d.ts"],
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules"]
 }
